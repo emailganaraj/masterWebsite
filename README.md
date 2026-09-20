@@ -2,7 +2,15 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 1 (Current)
+## Phase 2 (Current) — CMS Core
+
+- **TipTap editor** — block editor with bold, headings, lists, links, images
+- **Article CRUD** — draft, review, scheduled, published, archived + revision history
+- **Taxonomy** — categories (hierarchical), tags, authors
+- **Media library** — Sharp variants (400/800/1200/OG) → Cloudflare R2 or local `data/media`
+- **Site settings** — name, SEO defaults, social profiles
+
+## Phase 1 (Complete)
 
 - Next.js 15 + TypeScript + Tailwind CSS 4
 - PostgreSQL schema (articles, taxonomy, media, analytics, ads, audit)

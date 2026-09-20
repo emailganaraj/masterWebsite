@@ -1,11 +1,17 @@
-import { PlaceholderPage } from "@/lib/admin/placeholder-page";
+import { AuthorManager } from "@/components/authors/author-manager";
+import { PageHeader } from "@/components/admin/page-header";
+import { listAuthors } from "@/lib/actions/authors";
 
-export default function AuthorsPage() {
+export default async function AuthorsPage() {
+  const authors = await listAuthors();
+
   return (
-    <PlaceholderPage
-      title="Authors"
-      phase="Phase 2"
-      description="Public author profiles linked to admin users."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Authors"
+        description="Manage author profiles linked to articles."
+      />
+      <AuthorManager authors={authors} />
+    </div>
   );
 }

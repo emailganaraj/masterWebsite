@@ -18,9 +18,17 @@
     "postinstall": "node -e \"console.log('Dependencies installed OK')\""
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@electric-sql/pglite": "^0.3.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
-    "@electric-sql/pglite": "^0.3.14",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-link": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/html": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "better-auth": "1.3.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -30,6 +38,7 @@
     "pg": "^8.16.3",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "sharp": "^0.35.4",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

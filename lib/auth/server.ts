@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { roles, userRoles } from "@/lib/db/schema";
+import { roles, userRoles, users } from "@/lib/db/schema";
 import type { AppRole } from "./permissions";
+import { roleMap, statement } from "./permissions";
 
 export async function getServerSession() {
   const session = await auth.api.getSession({
@@ -20,7 +21,16 @@ export async function getUserRoles(userId: string): Promise<AppRole[]> {
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
     .where(eq(userRoles.userId, userId));
 
-  return rows.map((r) => r.name as AppRole);
+  const fromJoin = rows.map((r) => r.name as AppRole);
+  if (fromJoin.length > 0) return fromJoin;
+
+  const [user] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return user?.role ? [user.role as AppRole] : [];
 }
 
 export async function requireAuth(redirectTo = "/admin/login") {
@@ -56,14 +66,22 @@ export async function requireSuperAdmin() {
 
 export async function hasPermission(
   userId: string,
-  resource: keyof typeof import("./permissions").statement,
+  resource: keyof typeof statement,
   action: string,
 ): Promise<boolean> {
-  const result = await auth.api.userHasPermission({
-    body: {
-      userId,
-      permission: { [resource]: [action] },
-    },
-  });
-  return Boolean(result?.success);
+  const userRolesList = await getUserRoles(userId);
+  const permissions = { [resource]: [action] } as Record<string, string[]>;
+
+  type AuthorizeFn = (
+    request: Record<string, string[]>,
+  ) => { success: boolean } | undefined;
+
+  for (const roleName of userRolesList) {
+    const role = roleMap[roleName] as { authorize?: AuthorizeFn } | undefined;
+    if (role?.authorize?.(permissions)?.success) {
+      return true;
+    }
+  }
+
+  return false;
 }

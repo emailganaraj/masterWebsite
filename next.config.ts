@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "media.myarticlewebsite.com",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/api/media/local/**",
+      },
     ],
   },
   experimental: {

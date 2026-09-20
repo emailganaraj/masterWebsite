@@ -1,11 +1,17 @@
-import { PlaceholderPage } from "@/lib/admin/placeholder-page";
+import { TagManager } from "@/components/tags/tag-manager";
+import { PageHeader } from "@/components/admin/page-header";
+import { listTags } from "@/lib/actions/tags";
 
-export default function TagsPage() {
+export default async function TagsPage() {
+  const tags = await listTags();
+
   return (
-    <PlaceholderPage
-      title="Tags"
-      phase="Phase 2"
-      description="Flat tag taxonomy for cross-category content discovery."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Tags"
+        description="Flat taxonomy tags for articles."
+      />
+      <TagManager tags={tags} />
+    </div>
   );
 }

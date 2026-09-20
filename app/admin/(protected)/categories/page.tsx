@@ -1,11 +1,17 @@
-import { PlaceholderPage } from "@/lib/admin/placeholder-page";
+import { CategoryManager } from "@/components/categories/category-manager";
+import { PageHeader } from "@/components/admin/page-header";
+import { listCategories } from "@/lib/actions/categories";
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const categories = await listCategories();
+
   return (
-    <PlaceholderPage
-      title="Categories"
-      phase="Phase 2"
-      description="Hierarchical category management (Entertainment → Movies, etc.)."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Categories"
+        description="Manage hierarchical content categories."
+      />
+      <CategoryManager categories={categories} />
+    </div>
   );
 }

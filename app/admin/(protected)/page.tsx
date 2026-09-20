@@ -70,17 +70,16 @@ export default async function AdminDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Phase 1 Complete Checklist</CardTitle>
+          <CardTitle>Phase 2 — CMS Core</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-zinc-600">
-            <li>✅ Next.js 15 + TypeScript + Tailwind scaffold</li>
-            <li>✅ PostgreSQL schema (Drizzle ORM)</li>
-            <li>✅ Better Auth + RBAC roles</li>
-            <li>✅ Admin layout shell + navigation</li>
-            <li>✅ Health check endpoint (/api/health)</li>
-            <li>✅ Docker Compose (app + postgres + nginx)</li>
-            <li>→ Phase 2: TipTap editor + article CRUD</li>
+            <li>✅ TipTap block editor with revisions</li>
+            <li>✅ Article CRUD (draft, review, schedule, publish)</li>
+            <li>✅ Categories, tags, authors management</li>
+            <li>✅ Media upload (Sharp variants + R2 or local storage)</li>
+            <li>✅ Site settings editor</li>
+            <li>→ Phase 3: Public pages + ISR + SEO</li>
           </ul>
         </CardContent>
       </Card>
