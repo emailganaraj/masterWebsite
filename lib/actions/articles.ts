@@ -5,8 +5,11 @@ import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/auth/require-permission";
 import { getUserRoles, hasPermission } from "@/lib/auth/server";
 import { fail, ok, type ActionResult } from "@/lib/actions/types";
+import { getClientIp } from "@/lib/audit/client-ip";
+import { logAudit } from "@/lib/audit/log";
 import { createArticleRevision } from "@/lib/articles/revisions";
 import { publishDueScheduledArticles, updateSearchVector } from "@/lib/articles/scheduled";
+import { upsertArticleSlugRedirect } from "@/lib/redirects/upsert";
 import { emptyTipTapDocument, extractTextFromBody } from "@/lib/tiptap/extract-text";
 import { db } from "@/lib/db";
 import {
@@ -252,6 +255,17 @@ export async function createArticle(input: ArticleInput): Promise<ActionResult<{
     if (status === "published") {
       await revalidateArticlePublic(slug, input.categoryId);
     }
+
+    const ip = await getClientIp();
+    await logAudit({
+      userId: perm.data.userId,
+      action: status === "published" ? "publish" : "create",
+      entityType: "article",
+      entityId: row.id,
+      metadata: { title, slug, status },
+      ipAddress: ip,
+    });
+
     return ok({ id: row.id });
   } catch (err) {
     console.error("Create article failed:", err);
@@ -331,6 +345,13 @@ export async function updateArticle(
     await createArticleRevision(id, perm.data.userId, input.changeSummary ?? "Updated");
     await updateSearchVector(id);
 
+    if (
+      existing.status === "published" &&
+      existing.slug !== slug
+    ) {
+      await upsertArticleSlugRedirect(existing.slug, slug);
+    }
+
     revalidatePath("/admin/articles");
     revalidatePath(`/admin/articles/${id}`);
     if (status === "published" || existing.status === "published") {
@@ -339,6 +360,26 @@ export async function updateArticle(
         await revalidateArticlePublic(existing.slug, existing.categoryId);
       }
     }
+
+    const ip = await getClientIp();
+    let action: "update" | "publish" | "archive" = "update";
+    if (status === "published" && existing.status !== "published") action = "publish";
+    else if (status === "archived" && existing.status !== "archived") action = "archive";
+
+    await logAudit({
+      userId: perm.data.userId,
+      action,
+      entityType: "article",
+      entityId: id,
+      metadata: {
+        title,
+        slug,
+        status,
+        previousSlug: existing.slug !== slug ? existing.slug : undefined,
+      },
+      ipAddress: ip,
+    });
+
     return ok(undefined);
   } catch (err) {
     console.error("Update article failed:", err);
@@ -362,6 +403,17 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
     if (existing?.status === "published") {
       await revalidateArticlePublic(existing.slug, existing.categoryId);
     }
+
+    const ip = await getClientIp();
+    await logAudit({
+      userId: perm.data.userId,
+      action: "delete",
+      entityType: "article",
+      entityId: id,
+      metadata: { slug: existing?.slug },
+      ipAddress: ip,
+    });
+
     return ok(undefined);
   } catch {
     return fail("Could not delete article.");

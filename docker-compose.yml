@@ -38,6 +38,19 @@ services:
     expose:
       - "3000"
 
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: masterwebsite-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://masterwebsite:masterwebsite_dev@postgres:5432/masterwebsite
+
   nginx:
     image: nginx:1.27-alpine
     container_name: masterwebsite-nginx

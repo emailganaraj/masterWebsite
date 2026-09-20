@@ -2,7 +2,15 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 5 (Current) — Analytics & Ads
+## Phase 6 (Current) — Production Ready
+
+- **Scheduled publish** — pg-boss cron with search index + ISR revalidation + audit log
+- **Redirects** — middleware 301 lookup; auto-redirect on published slug change
+- **Audit logs** — `/admin/audit-logs` (SUPER_ADMIN) tracks article + settings changes
+- **Tests** — `pnpm test` (Vitest), `pnpm test:e2e` (Playwright smoke tests)
+- **Docker worker** — `worker` service in docker-compose for production jobs
+
+## Phase 5 — Analytics & Ads
 
 - **pg-boss worker** — `pnpm run worker` for async jobs (trending, rollups, scheduled publish)
 - **Event pipeline** — `POST /api/events` returns 202 when queued, sync fallback without worker
@@ -134,6 +142,8 @@ Site available at http://localhost (nginx → app).
 |---------|-------------|
 | `npm run dev` | Development server |
 | `npm run worker` | pg-boss background jobs (analytics, trending, publish) |
+| `npm run test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright E2E smoke tests |
 | `npm run build` | Production build |
 | `npm run db:push` | Push schema to database |
 | `npm run db:generate` | Generate SQL migrations |

@@ -129,20 +129,24 @@ export default async function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Phase 5 — Analytics & Ads</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Phase 6 — Production Ready</CardTitle>
+            <Link href="/admin/audit-logs" className="text-sm text-blue-600 hover:underline">
+              Audit logs →
+            </Link>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600">
-              <li>✅ pg-boss worker + async event pipeline</li>
-              <li>✅ Admin analytics dashboard</li>
-              <li>✅ AdSense slot config + public AdSlot</li>
-              <li>✅ Daily rollups + scheduled trending recompute</li>
-              <li>→ Phase 6: Redirects, audit UI, E2E</li>
+              <li>✅ Scheduled publish with revalidate + search index</li>
+              <li>✅ 301 redirects middleware + slug-change auto-redirect</li>
+              <li>✅ Audit log writes + admin UI</li>
+              <li>✅ Vitest unit tests + Playwright E2E smoke tests</li>
+              <li>✅ Docker worker service for production</li>
             </ul>
             <p className="mt-3 text-xs text-zinc-500">
-              Events (24h): {recentEvents.toLocaleString()} — run{" "}
-              <code className="rounded bg-zinc-100 px-1">pnpm run worker</code> for async jobs.
+              Events (24h): {recentEvents.toLocaleString()} —{" "}
+              <code className="rounded bg-zinc-100 px-1">pnpm test</code> /{" "}
+              <code className="rounded bg-zinc-100 px-1">pnpm test:e2e</code>
             </p>
           </CardContent>
         </Card>

@@ -3,6 +3,8 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { revalidateHomepage } from "@/lib/seo/revalidate-public";
+import { getClientIp } from "@/lib/audit/client-ip";
+import { logAudit } from "@/lib/audit/log";
 import { requirePermission } from "@/lib/auth/require-permission";
 import { fail, ok, type ActionResult } from "@/lib/actions/types";
 import { db } from "@/lib/db";
@@ -68,6 +70,16 @@ export async function updateSiteSettings(
 
     revalidatePath("/admin/settings");
     revalidateHomepage();
+
+    const ip = await getClientIp();
+    await logAudit({
+      userId: perm.data.userId,
+      action: "settings_change",
+      entityType: "site_settings",
+      metadata: { keys: entries.map((e) => e.key) },
+      ipAddress: ip,
+    });
+
     return ok(undefined);
   } catch {
     return fail("Could not save settings.");
