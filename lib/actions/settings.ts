@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { revalidateHomepage } from "@/lib/seo/revalidate-public";
 import { requirePermission } from "@/lib/auth/require-permission";
 import { fail, ok, type ActionResult } from "@/lib/actions/types";
 import { db } from "@/lib/db";
@@ -66,6 +67,7 @@ export async function updateSiteSettings(
     }
 
     revalidatePath("/admin/settings");
+    revalidateHomepage();
     return ok(undefined);
   } catch {
     return fail("Could not save settings.");

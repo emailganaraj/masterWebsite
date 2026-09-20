@@ -2,7 +2,15 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 2 (Current) — CMS Core
+## Phase 3 (Current) — Public Site
+
+- Public routes: `/article/{slug}`, `/category/{slug}`, `/tag/{slug}`, `/author/{slug}`
+- Homepage sections from DB (hero, latest, trending, etc.)
+- Legal CMS pages: `/about`, `/contact`, `/privacy`, `/terms`, `/disclaimer`
+- SEO: `generateMetadata`, JSON-LD, `/sitemap.xml`, `/robots.txt`
+- ISR (`revalidate` 120–300s) + `revalidateTag` on publish via `/api/revalidate`
+
+## Phase 2 — CMS Core
 
 - **TipTap editor** — block editor with bold, headings, lists, links, images
 - **Article CRUD** — draft, review, scheduled, published, archived + revision history

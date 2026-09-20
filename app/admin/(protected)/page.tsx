@@ -70,16 +70,15 @@ export default async function AdminDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Phase 2 — CMS Core</CardTitle>
+          <CardTitle>Phase 3 — Public Site</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-zinc-600">
-            <li>✅ TipTap block editor with revisions</li>
-            <li>✅ Article CRUD (draft, review, schedule, publish)</li>
-            <li>✅ Categories, tags, authors management</li>
-            <li>✅ Media upload (Sharp variants + R2 or local storage)</li>
-            <li>✅ Site settings editor</li>
-            <li>→ Phase 3: Public pages + ISR + SEO</li>
+            <li>✅ Public article, category, tag, author pages</li>
+            <li>✅ Homepage driven by homepage_sections</li>
+            <li>✅ SEO metadata + JSON-LD + sitemap + robots.txt</li>
+            <li>✅ ISR with revalidateTag on publish</li>
+            <li>→ Phase 4: Search, trending, recommendations</li>
           </ul>
         </CardContent>
       </Card>

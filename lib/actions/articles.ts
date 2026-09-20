@@ -14,7 +14,9 @@ import {
   articleTags,
   articles,
   authors,
+  categories,
 } from "@/lib/db/schema";
+import { revalidatePublishedArticle } from "@/lib/seo/revalidate-public";
 import { slugify } from "@/lib/utils";
 
 export type ArticleStatus =
@@ -82,6 +84,22 @@ async function canEditArticle(userId: string, articleId: string): Promise<boolea
     .limit(1);
 
   return article?.authorId === author.id;
+}
+
+async function revalidateArticlePublic(
+  slug: string,
+  categoryId: string | null | undefined,
+) {
+  let categorySlug: string | null = null;
+  if (categoryId) {
+    const [cat] = await db
+      .select({ slug: categories.slug })
+      .from(categories)
+      .where(eq(categories.id, categoryId))
+      .limit(1);
+    categorySlug = cat?.slug ?? null;
+  }
+  revalidatePublishedArticle(slug, categorySlug);
 }
 
 async function syncArticleTags(articleId: string, tagIds: string[]) {
@@ -231,6 +249,9 @@ export async function createArticle(input: ArticleInput): Promise<ActionResult<{
     await updateSearchVector(row.id);
 
     revalidatePath("/admin/articles");
+    if (status === "published") {
+      await revalidateArticlePublic(slug, input.categoryId);
+    }
     return ok({ id: row.id });
   } catch (err) {
     console.error("Create article failed:", err);
@@ -312,6 +333,12 @@ export async function updateArticle(
 
     revalidatePath("/admin/articles");
     revalidatePath(`/admin/articles/${id}`);
+    if (status === "published" || existing.status === "published") {
+      await revalidateArticlePublic(slug, input.categoryId ?? existing.categoryId);
+      if (existing.slug !== slug) {
+        await revalidateArticlePublic(existing.slug, existing.categoryId);
+      }
+    }
     return ok(undefined);
   } catch (err) {
     console.error("Update article failed:", err);
@@ -323,9 +350,18 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
   const perm = await requirePermission("article", "delete");
   if (!perm.ok) return perm;
 
+  const [existing] = await db
+    .select({ slug: articles.slug, status: articles.status, categoryId: articles.categoryId })
+    .from(articles)
+    .where(eq(articles.id, id))
+    .limit(1);
+
   try {
     await db.delete(articles).where(eq(articles.id, id));
     revalidatePath("/admin/articles");
+    if (existing?.status === "published") {
+      await revalidateArticlePublic(existing.slug, existing.categoryId);
+    }
     return ok(undefined);
   } catch {
     return fail("Could not delete article.");
