@@ -4,6 +4,7 @@ import { decayViewWindows } from "@/lib/analytics/decay-view-windows";
 import { recordPageView } from "@/lib/analytics/record-view";
 import { recomputeTrendingScores } from "@/lib/analytics/recompute-scores";
 import { publishDueScheduledArticles } from "@/lib/articles/scheduled";
+import { regenerateSitemapCache } from "@/lib/seo/regenerate-sitemap";
 import { JOB_NAMES } from "./boss";
 
 export type PageViewJobData = {
@@ -37,6 +38,10 @@ export async function registerWorkers(boss: PgBoss) {
 
   await boss.work(JOB_NAMES.PUBLISH_SCHEDULED, async () => {
     await publishDueScheduledArticles();
+  });
+
+  await boss.work(JOB_NAMES.REGENERATE_SITEMAP, async () => {
+    regenerateSitemapCache();
   });
 }
 

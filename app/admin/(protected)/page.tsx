@@ -130,23 +130,21 @@ export default async function AdminDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Phase 6 — Production Ready</CardTitle>
-            <Link href="/admin/audit-logs" className="text-sm text-blue-600 hover:underline">
-              Audit logs →
+            <CardTitle>Phase 7 — Admin Polish</CardTitle>
+            <Link href="/admin/users" className="text-sm text-blue-600 hover:underline">
+              Manage users →
             </Link>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600">
-              <li>✅ Scheduled publish with revalidate + search index</li>
-              <li>✅ 301 redirects middleware + slug-change auto-redirect</li>
-              <li>✅ Audit log writes + admin UI</li>
-              <li>✅ Vitest unit tests + Playwright E2E smoke tests</li>
-              <li>✅ Docker worker service for production</li>
+              <li>✅ Users admin — roles + ban/unban (SUPER_ADMIN)</li>
+              <li>✅ SEO admin — sitemap stats, regenerate, redirect list</li>
+              <li>✅ All admin nav pages implemented</li>
+              <li>→ Platform complete — deploy with Docker Compose</li>
             </ul>
             <p className="mt-3 text-xs text-zinc-500">
               Events (24h): {recentEvents.toLocaleString()} —{" "}
-              <code className="rounded bg-zinc-100 px-1">pnpm test</code> /{" "}
-              <code className="rounded bg-zinc-100 px-1">pnpm test:e2e</code>
+              <Link href="/admin/seo" className="text-blue-600 hover:underline">SEO dashboard</Link>
             </p>
           </CardContent>
         </Card>

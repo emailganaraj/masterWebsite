@@ -2,7 +2,13 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 6 (Current) — Production Ready
+## Phase 7 (Current) — Admin Polish
+
+- **Users admin** — `/admin/users` role assignment + ban/unban (SUPER_ADMIN)
+- **SEO admin** — `/admin/seo` sitemap stats, regenerate cache, redirect management
+- **Platform complete** — all admin nav items implemented; deploy via Docker Compose
+
+## Phase 6 — Production Ready
 
 - **Scheduled publish** — pg-boss cron with search index + ISR revalidation + audit log
 - **Redirects** — middleware 301 lookup; auto-redirect on published slug change
