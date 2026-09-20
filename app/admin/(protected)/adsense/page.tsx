@@ -1,11 +1,31 @@
-import { PlaceholderPage } from "@/lib/admin/placeholder-page";
+import { SlotManager } from "@/components/adsense/slot-manager";
+import { PageHeader } from "@/components/admin/page-header";
+import {
+  getAdSenseSettings,
+  listAdSlotsForAdmin,
+} from "@/lib/actions/adsense";
+import { redirect } from "next/navigation";
+import { getServerSession, hasPermission } from "@/lib/auth/server";
 
-export default function AdSensePage() {
+export default async function AdSensePage() {
+  const session = await getServerSession();
+  if (!session?.user?.id) redirect("/admin/login");
+
+  const canRead = await hasPermission(session.user.id, "adsense", "read");
+  if (!canRead) redirect("/admin");
+
+  const [slots, settings] = await Promise.all([
+    listAdSlotsForAdmin(),
+    getAdSenseSettings(),
+  ]);
+
   return (
-    <PlaceholderPage
-      title="AdSense"
-      phase="Phase 5"
-      description="Ad slot configuration and OAuth reporting integration."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="AdSense"
+        description="Configure ad placements and publisher ID."
+      />
+      <SlotManager slots={slots} settings={settings} />
+    </div>
   );
 }

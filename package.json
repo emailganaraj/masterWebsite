@@ -15,6 +15,7 @@
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "setup": "tsx --env-file=.env scripts/setup.ts",
     "dev:full": "tsx --env-file=.env scripts/setup.ts --dev",
+    "worker": "tsx --env-file=.env scripts/worker.ts",
     "postinstall": "node -e \"console.log('Dependencies installed OK')\""
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "lucide-react": "^0.542.0",
     "next": "15.5.2",
     "pg": "^8.16.3",
+    "pg-boss": "^12.33.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "sharp": "^0.35.4",

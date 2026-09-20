@@ -8,6 +8,7 @@ export async function recordPageView(input: {
   sessionId: string;
   referrer?: string | null;
   device?: string | null;
+  country?: string | null;
 }) {
   await db.insert(analyticsEvents).values({
     sessionId: input.sessionId,
@@ -15,6 +16,7 @@ export async function recordPageView(input: {
     path: input.path,
     referrer: input.referrer ?? null,
     device: input.device ?? null,
+    country: input.country ?? null,
   });
 
   if (!input.articleId) return;

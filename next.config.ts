@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Standalone output requires symlink privileges — enabled only in Docker/Linux builds
   ...(process.env.DOCKER_BUILD === "1" ? { output: "standalone" as const } : {}),
+  serverExternalPackages: ["pg-boss"],
   poweredByHeader: false,
   images: {
     remotePatterns: [

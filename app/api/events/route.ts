@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { recordPageView } from "@/lib/analytics/record-view";
-import { recomputeTrendingScores } from "@/lib/analytics/recompute-scores";
+import { enqueueOrRecordPageView } from "@/lib/analytics/enqueue-page-view";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,20 +15,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing path or sessionId" }, { status: 400 });
     }
 
-    await recordPageView({
+    const country = request.headers.get("cf-ipcountry") ?? request.headers.get("x-vercel-ip-country");
+
+    const result = await enqueueOrRecordPageView({
       articleId: body.articleId,
       path: body.path,
       sessionId: body.sessionId,
       referrer: body.referrer,
       device: body.device,
+      country,
     });
 
-    // Lightweight inline recompute (full pg-boss job in Phase 5)
-    if (body.articleId) {
-      await recomputeTrendingScores();
+    if (result.mode === "async") {
+      return NextResponse.json({ ok: true, queued: true }, { status: 202 });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, queued: false });
   } catch {
     return NextResponse.json({ error: "Failed to record event" }, { status: 500 });
   }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "@/components/public/ad-slot";
 import { SearchForm } from "@/components/public/search-form";
 import { listCategoriesForNav } from "@/lib/queries/taxonomy";
 import { getPublicSiteSettings } from "@/lib/queries/site";
@@ -34,6 +35,9 @@ export default async function PublicLayout({
           <div className="hidden md:block">
             <SearchForm />
           </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 pb-2">
+          <AdSlot placement="header" />
         </div>
       </header>
       <main>{children}</main>

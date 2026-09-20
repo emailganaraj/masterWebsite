@@ -6,6 +6,7 @@ import { ArticleBody } from "@/components/public/article-body";
 import { ArticleGrid } from "@/components/public/article-grid";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { JsonLd } from "@/components/public/json-ld";
+import { AdSlot } from "@/components/public/ad-slot";
 import { PageViewTracker } from "@/components/public/page-view-tracker";
 import { getPublishedArticleBySlug } from "@/lib/queries/articles";
 import { buildPageMetadata } from "@/lib/seo/metadata";
@@ -69,6 +70,8 @@ export default async function ArticlePage({ params }: Props) {
 
       <Breadcrumbs items={breadcrumbs} />
 
+      <AdSlot placement="article_top" />
+
       {article.category ? (
         <Link
           href={`/category/${article.category.slug}`}
@@ -118,6 +121,8 @@ export default async function ArticlePage({ params }: Props) {
       <div className="mt-10">
         <ArticleBody body={article.body as Record<string, unknown> | null} />
       </div>
+
+      <AdSlot placement="article_bottom" />
 
       {article.tags.length > 0 ? (
         <div className="mt-10 flex flex-wrap gap-2">

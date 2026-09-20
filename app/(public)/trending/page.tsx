@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ListPage } from "@/components/public/list-page";
-import { recomputeTrendingScores } from "@/lib/analytics/recompute-scores";
 import { listTrendingArticles } from "@/lib/queries/articles";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
@@ -13,7 +12,6 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default async function TrendingPage() {
-  await recomputeTrendingScores();
   const articles = await listTrendingArticles(24);
 
   return (

@@ -78,7 +78,7 @@ export function AdminSidebar() {
       </nav>
 
       <div className="border-t border-zinc-800 px-5 py-4 text-xs text-zinc-500">
-        Phase 4 — Discovery
+        Phase 5 — Analytics & Ads
       </div>
     </aside>
   );

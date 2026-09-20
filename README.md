@@ -2,7 +2,15 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 4 (Current) — Discovery
+## Phase 5 (Current) — Analytics & Ads
+
+- **pg-boss worker** — `pnpm run worker` for async jobs (trending, rollups, scheduled publish)
+- **Event pipeline** — `POST /api/events` returns 202 when queued, sync fallback without worker
+- **Admin analytics** — `/admin/analytics` with traffic chart, top articles, referrers, devices
+- **AdSense** — `/admin/adsense` slot config + `<AdSlot>` on public pages
+- **Daily rollups** — `analytics_daily_rollups` populated nightly by worker
+
+## Phase 4 — Discovery
 
 - **Search** — PostgreSQL FTS via `search_vector` at `/search?q=`
 - **List pages** — `/trending`, `/popular`, `/latest`, `/recommended`
@@ -99,7 +107,13 @@ Default admin credentials:
 ### 6. Start dev server
 
 ```bash
-npm run dev
+npx pnpm@9 run dev
+```
+
+Optional — background worker for async analytics + scheduled jobs:
+
+```bash
+npx pnpm@9 run worker
 ```
 
 - Public site: http://localhost:3000
@@ -119,6 +133,7 @@ Site available at http://localhost (nginx → app).
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Development server |
+| `npm run worker` | pg-boss background jobs (analytics, trending, publish) |
 | `npm run build` | Production build |
 | `npm run db:push` | Push schema to database |
 | `npm run db:generate` | Generate SQL migrations |

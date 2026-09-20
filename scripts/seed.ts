@@ -153,6 +153,7 @@ async function seedSiteSettings() {
     { key: "timezone", value: "UTC" },
     { key: "trending_weights", value: { views2hWeight: 3, views24hWeight: 1, gravity: 1.5 } },
     { key: "social_profiles", value: {} },
+    { key: "adsense_publisher_id", value: "" },
   ]) {
     await db
       .insert(siteSettings)
