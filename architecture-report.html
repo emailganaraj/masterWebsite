@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article Publishing Platform — Architecture Report</title>
+  <style>
+    :root { --bg: #0f1117; --surface: #1a1d27; --text: #e4e4e7; --muted: #a1a1aa; --accent: #3b82f6; --border: #27272a; }
+    * { box-sizing: border-box; }
+    body { font-family: Georgia, 'Times New Roman', serif; line-height: 1.7; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; background: var(--bg); color: var(--text); }
+    h1 { font-size: 1.9rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+    h2 { font-size: 1.4rem; margin-top: 2.5rem; color: #93c5fd; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.5rem; color: #cbd5e1; }
+    p, li { color: var(--text); }
+    .meta { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+    th { background: var(--surface); color: #93c5fd; }
+    tr:nth-child(even) { background: #12141c; }
+    code, pre { font-family: Consolas, 'Courier New', monospace; font-size: 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+    pre { padding: 1rem; overflow-x: auto; white-space: pre-wrap; }
+    code { padding: 0.15rem 0.4rem; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: sans-serif; }
+    .fact { background: #14532d; color: #86efac; }
+    .infer { background: #713f12; color: #fde047; }
+    .toc { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; }
+    .toc ol { columns: 2; column-gap: 2rem; margin: 0; padding-left: 1.25rem; font-size: 0.9rem; }
+    .toc a { color: #93c5fd; text-decoration: none; }
+    .summary-box { background: var(--surface); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    ul { padding-left: 1.25rem; }
+    .phase { background: var(--surface); padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 6px; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<h1>Production Article Publishing Platform — Architecture Report</h1>
+<p class="meta">
+  <strong>Project:</strong> D:\masterWebsite<br>
+  <strong>Domain example:</strong> myArticleWebsite.com<br>
+  <strong>Date:</strong> September 20, 2026<br>
+  <strong>Hosting choice:</strong> Self-hosted VPS/Docker + PostgreSQL + Cloudflare CDN<br>
+  <strong>Content model:</strong> Mixed evergreen + timely (stable URLs, dates on page only)
+</p>
+
+<div class="summary-box">
+  <strong>Executive Summary:</strong> Build a modular monolith using Next.js 15+ (App Router), PostgreSQL 16, Drizzle ORM, TipTap editor, Cloudflare R2 for media, and pg-boss for background jobs. Public pages use ISR + CDN caching so content is database-driven but NOT database-hit on every request. SEO-first server-rendered HTML. No Redis, Elasticsearch, or separate API server on day one — add when metrics justify it.
+</div>
+
+<nav class="toc">
+  <strong>Table of Contents (46 Sections)</strong>
+  <ol>
+    <li><a href="#s1">Research Findings</a></li>
+    <li><a href="#s2">Architecture Decision</a></li>
+    <li><a href="#s3">Database-Driven Content</a></li>
+    <li><a href="#s4">URL Architecture</a></li>
+    <li><a href="#s5">Content Taxonomy</a></li>
+    <li><a href="#s6">Master Admin / CMS</a></li>
+    <li><a href="#s7">Article Editor</a></li>
+    <li><a href="#s8">AI-Ready Content System</a></li>
+    <li><a href="#s9">Public Website</a></li>
+    <li><a href="#s10">Homepage</a></li>
+    <li><a href="#s11">Article Page</a></li>
+    <li><a href="#s12">Related Articles</a></li>
+    <li><a href="#s13">Viewed / Not Viewed</a></li>
+    <li><a href="#s14">Search</a></li>
+    <li><a href="#s15">SEO</a></li>
+    <li><a href="#s16">Google Discover / News</a></li>
+    <li><a href="#s17">Internal Linking</a></li>
+    <li><a href="#s18">Image System</a></li>
+    <li><a href="#s19">Google AdSense</a></li>
+    <li><a href="#s20">AdSense Analytics</a></li>
+    <li><a href="#s21">Site Analytics</a></li>
+    <li><a href="#s22">Trending System</a></li>
+    <li><a href="#s23">Recommendation System</a></li>
+    <li><a href="#s24">Admin Dashboard</a></li>
+    <li><a href="#s25">User / Admin Roles</a></li>
+    <li><a href="#s26">Security</a></li>
+    <li><a href="#s27">Database Schema</a></li>
+    <li><a href="#s28">Scalability</a></li>
+    <li><a href="#s29">Caching</a></li>
+    <li><a href="#s30">URL Redirects</a></li>
+    <li><a href="#s31">Content Versioning</a></li>
+    <li><a href="#s32">Scheduled Publishing</a></li>
+    <li><a href="#s33">Monetization Strategy</a></li>
+    <li><a href="#s34">Performance</a></li>
+    <li><a href="#s35">Mobile-First</a></li>
+    <li><a href="#s36">Accessibility</a></li>
+    <li><a href="#s37">Legal / Trust Pages</a></li>
+    <li><a href="#s38">Site Configuration</a></li>
+    <li><a href="#s39">AI Roadmap</a></li>
+    <li><a href="#s40">Tech Stack</a></li>
+    <li><a href="#s41">Cost Optimization</a></li>
+    <li><a href="#s42">Deployment</a></li>
+    <li><a href="#s43">Backups</a></li>
+    <li><a href="#s44">Testing</a></li>
+    <li><a href="#s45">Final SEO Audit</a></li>
+    <li><a href="#s46">Final Security Audit</a></li>
+    <li><a href="#s47">Implementation Phases</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. Research Findings</h2>
+<h3>1.1 Documented Facts</h3>
+<table>
+  <tr><th>Source</th><th>Key Pattern</th></tr>
+  <tr><td>Ghost CMS</td><td>Decoupled JSON REST API. Content stored as Lexical JSON. Default post URL is /{slug}. Tags at /tag/{slug}/. Headless mode requires rebuilding sitemap/SEO yourself.</td></tr>
+  <tr><td>WordPress VIP</td><td>Global edge page cache (default 30 min). Stale-while-revalidate up to 12h. Publish auto-purges related URLs. Media on object store.</td></tr>
+  <tr><td>Next.js ISR</td><td>Pre-render + on-demand generation. revalidateTag on CMS publish. Sitemap indexes split at ~50k URLs.</td></tr>
+  <tr><td>The Guardian</td><td>URLs: /section/yyyy/mon/dd/story-slug — date + section + slug for news.</td></tr>
+  <tr><td>Medium</td><td>Slug frozen at publish. Immutable 12-char hex ID appended.</td></tr>
+  <tr><td>NYT</td><td>Article URL stable 6 days, then migrates to archive URL.</td></tr>
+  <tr><td>Google Discover</td><td>No special tags required. max-image-preview:large. Hero images ≥1200px. AMP NOT required.</td></tr>
+  <tr><td>AdSense API v2</td><td>OAuth 2.0. Scope: adsense.readonly. Reports via accounts/{id}/reports:generate.</td></tr>
+  <tr><td>Reddit Hot</td><td>sign(score) * log10(max(abs(score),1)) + (epoch - 1134028003) / 45000</td></tr>
+  <tr><td>Hacker News</td><td>(points - 1) / (age_hours + 2)^1.8 — time decay dominates.</td></tr>
+</table>
+
+<h3>1.2 Reasonable Inferences</h3>
+<p><span class="badge infer">INFERENCE</span> NYT, BBC, Vox, BuzzFeed, Forbes, TechCrunch use CDN-first HTML, async analytics, redirect tables — exact stacks not public.</p>
+<p><span class="badge infer">INFERENCE</span> Large SEO publishers decouple canonical URL from taxonomy.</p>
+<p><span class="badge infer">INFERENCE</span> Recommendations at scale use offline scoring + cached results; vector search added later.</p>
+
+<h3>1.3 Common Patterns</h3>
+<ul>
+  <li>Database = source of truth; HTML generated server-side and CDN-cached</li>
+  <li>Publish triggers targeted cache invalidation</li>
+  <li>Media on object storage + CDN</li>
+  <li>Async analytics pipeline</li>
+  <li>Structured JSON content rendered to semantic HTML</li>
+  <li>301 redirect table for slug changes</li>
+  <li>Separate strategies for Latest, Popular, Trending, Related</li>
+</ul>
+
+<hr>
+
+<h2 id="s2">2. Architecture Decision</h2>
+<p><strong>Pattern:</strong> Modular Monolith — single Next.js codebase, clear domain boundaries.</p>
+<table>
+  <tr><th>Layer</th><th>Decision</th><th>Why</th></tr>
+  <tr><td>Frontend</td><td>Next.js 15+ App Router, Server Components</td><td>Full HTML for Google; minimal client JS</td></tr>
+  <tr><td>Admin CMS</td><td>Same app, /admin/*</td><td>Shared types, one deployment</td></tr>
+  <tr><td>Backend</td><td>Route Handlers + Server Actions</td><td>No separate API server on VPS</td></tr>
+  <tr><td>Database</td><td>PostgreSQL 16</td><td>Taxonomy, JSONB, FTS, pg-boss jobs</td></tr>
+  <tr><td>ORM</td><td>Drizzle</td><td>Lightweight, SQL-transparent</td></tr>
+  <tr><td>Cache</td><td>Cloudflare CDN + ISR tags</td><td>Redis deferred until needed</td></tr>
+  <tr><td>Storage</td><td>Cloudflare R2</td><td>Free egress, cheap</td></tr>
+  <tr><td>Search v1</td><td>PostgreSQL FTS + pg_trgm</td><td>Zero extra infra</td></tr>
+  <tr><td>Auth</td><td>Better Auth + RBAC</td><td>Self-hosted, server-validated</td></tr>
+  <tr><td>Jobs</td><td>pg-boss</td><td>No Redis needed initially</td></tr>
+  <tr><td>Editor</td><td>TipTap (ProseMirror JSON)</td><td>Structured, AI-ready</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s3">3. Database-Driven Content — Rendering Strategy</h2>
+<p><strong>Principle:</strong> Database-controlled ≠ database-hit on every request.</p>
+<pre>
+CORRECT:  PostgreSQL → Server Component → ISR Cache → Cloudflare CDN → User/Googlebot
+WRONG:    Browser → Client JS → API → DB → Render (bad SEO)
+</pre>
+<table>
+  <tr><th>Page</th><th>Strategy</th><th>Revalidation</th></tr>
+  <tr><td>/article/[slug]</td><td>ISR</td><td>revalidateTag('article:{slug}')</td></tr>
+  <tr><td>/category/[slug]</td><td>ISR</td><td>revalidateTag('category:{slug}')</td></tr>
+  <tr><td>/ (homepage)</td><td>ISR 60-300s</td><td>revalidateTag('homepage')</td></tr>
+  <tr><td>/search</td><td>SSR</td><td>noindex, short/no cache</td></tr>
+  <tr><td>/admin/*</td><td>SSR, no cache</td><td>N/A</td></tr>
+</table>
+<p>Article body: TipTap JSON → generateHTML() server-side via @tiptap/html.</p>
+
+<hr>
+
+<h2 id="s4">4. URL Architecture</h2>
+<p><strong>Decision:</strong> Stable /article/{slug} — NO category or date in path.</p>
+<table>
+  <tr><th>Route</th><th>Pattern</th><th>Example</th></tr>
+  <tr><td>Article</td><td>/article/{slug}</td><td>/article/how-the-world-is-viewing-you</td></tr>
+  <tr><td>Category</td><td>/category/{slug}</td><td>/category/comedy</td></tr>
+  <tr><td>Tag</td><td>/tag/{slug}</td><td>/tag/celebrity</td></tr>
+  <tr><td>Author</td><td>/author/{slug}</td><td>/author/jane-doe</td></tr>
+  <tr><td>Search</td><td>/search?q=</td><td>noindex on results</td></tr>
+  <tr><td>Lists</td><td>/trending, /latest, /popular</td><td>—</td></tr>
+</table>
+<ul>
+  <li>Lowercase, hyphen-separated, unique slug (DB index)</li>
+  <li>Category/tag/author changes do NOT change canonical URL</li>
+  <li>Slug change → 301 via redirects table</li>
+  <li>Dates in page content + JSON-LD, NOT in URL</li>
+</ul>
+
+<hr>
+
+<h2 id="s5">5. Content Taxonomy</h2>
+<pre>
+categories (parent_id self-reference)
+  Entertainment → Movies, Music
+  Sports → Cricket, Football
+  Comedy → Memes, Funny Stories
+
+tags (flat, many-to-many)
+  celebrity, viral, review, etc.
+</pre>
+<p>Article: one primary category_id + multiple tags. Future: curated "collections" without URL changes.</p>
+
+<hr>
+
+<h2 id="s6">6. Master Admin / CMS</h2>
+<p>Route: /admin/* — noindex, auth-gated.</p>
+<p><strong>Article ops:</strong> create, edit, delete/archive, restore, preview, publish, schedule, draft, unpublish, duplicate, change slug, revisions.</p>
+<p><strong>Fields:</strong> title, subtitle, excerpt, body, category, subcategory, tags, author, featured image, gallery, captions, alt text, video embeds, related articles, SEO fields, dates, status.</p>
+<p><strong>Nav:</strong> Dashboard | Articles | Create | Categories | Tags | Media | Authors | Analytics | AdSense | SEO | Users | Settings | Audit Logs</p>
+
+<hr>
+
+<h2 id="s7">7. Article Editor — TipTap</h2>
+<p><strong>Chosen:</strong> TipTap (ProseMirror JSON in PostgreSQL JSONB).</p>
+<p>Blocks: H1-H3, paragraphs, bold/italic, links, lists, quotes, images+captions, galleries, videos, embeds, tables, callouts, separators, internal links.</p>
+<p>Server render: generateHTML(json, extensions) from @tiptap/html — no raw HTML storage.</p>
+
+<hr>
+
+<h2 id="s8">8. AI-Ready Content System</h2>
+<pre>
+lib/ai/
+  ArticleGenerator.ts, ArticleImprover.ts, SEOGenerator.ts
+  TagGenerator.ts, CategoryClassifier.ts, InternalLinkingEngine.ts
+  RecommendationEngine.ts, ImageGenerator.ts
+  providers/NullProvider.ts (default), OpenAIProvider.ts (future)
+</pre>
+<p>Future pipeline: Research → AI Draft → Human Review (REQUIRED) → SEO → Schedule → Publish</p>
+<p>Revision metadata: { generated_by, model, prompt_hash, reviewed_by }</p>
+
+<hr>
+
+<h2 id="s9">9. Public Website Pages</h2>
+<p>Home, Category, Article, Tag, Author, Search, Trending, Latest, Popular, Recommended, About, Contact, Privacy, Terms, Disclaimer, 404 — all determined by architecture above.</p>
+
+<hr>
+
+<h2 id="s10">10. Homepage</h2>
+<p>Configurable via homepage_sections. Sections: Hero (1), Trending (6-8), Latest (8-12), Popular (6-8), Editor's Picks, Category blocks (3-4 each), Recommended. Each = one efficient LIMIT query. Ad slots between sections. ISR 60-300s.</p>
+
+<hr>
+
+<h2 id="s11">11. Article Page</h2>
+<p>Server-rendered HTML with: breadcrumb, category, H1 title, subtitle, author, dates, featured image (≥1200px), body, internal links, related/recommended/popular, ad slots. Google never needs JS for article text.</p>
+
+<hr>
+
+<h2 id="s12">12. Related Articles &amp; Recommendations</h2>
+<table>
+  <tr><th>Type</th><th>Algorithm v1</th><th>Cache</th></tr>
+  <tr><td>Latest</td><td>ORDER BY published_at DESC</td><td>60s</td></tr>
+  <tr><td>Popular</td><td>70% views_7d + 30% views_all_time</td><td>5min</td></tr>
+  <tr><td>Trending</td><td>(views_2h*3 + views_24h) / (age_hours+2)^1.5</td><td>5min job</td></tr>
+  <tr><td>Related</td><td>category +3, shared tags +2, manual +5</td><td>per-article ISR</td></tr>
+  <tr><td>Recommended</td><td>Trending blend, exclude cookie read-history</td><td>SSR</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s13">13. Viewed / Not Viewed</h2>
+<p>Cookie <code>ys_read</code>: JSON array of up to 50 article UUIDs. SameSite=Lax, 90 days, no PII. Server reads on /recommended. Privacy policy disclosure. No login required.</p>
+
+<hr>
+
+<h2 id="s14">14. Search</h2>
+<p>v1: PostgreSQL FTS (tsvector + GIN index) + pg_trgm for autocomplete.</p>
+<pre>
+interface SearchProvider {
+  indexArticle(article): Promise&lt;void&gt;
+  search(query, filters): Promise&lt;SearchResult[]&gt;
+}
+// PostgresSearchProvider → MeilisearchProvider (when scale requires)
+</pre>
+
+<hr>
+
+<h2 id="s15">15. SEO</h2>
+<p>Every page: title, meta description, canonical, OG tags, Twitter Card, max-image-preview:large, single H1, JSON-LD (Article, BreadcrumbList, Person, Organization, WebSite), time elements.</p>
+<p>Sitemap: dynamic, index at 50k URLs. Robots: block /admin, /api. Thin tags (&lt;3 articles) → noindex.</p>
+
+<hr>
+
+<h2 id="s16">16. Google Discover / News</h2>
+<p><span class="badge fact">FACT</span> Discover: indexed + policies. No schema required. NOT guaranteed.</p>
+<p>Implement: max-image-preview:large, 1200px+ images, fast CWV, Article schema, HTTPS, sitemap in Search Console.</p>
+<p>Google News: requires Publisher Center application + editorial standards.</p>
+
+<hr>
+
+<h2 id="s17">17. Internal Linking</h2>
+<p>Breadcrumbs, "More in {Category}", tag footer links, related/recommended blocks, prev/next, manual article_relations, future AI suggestions in admin.</p>
+
+<hr>
+
+<h2 id="s18">18. Image System</h2>
+<pre>
+Upload → validate MIME/size → Sharp variants (400, 800, 1200, og 1200x630)
+→ WebP/AVIF → Cloudflare R2 → CDN (media.myArticleWebsite.com)
+Metadata in media table. NEVER on VPS disk.
+</pre>
+
+<hr>
+
+<h2 id="s19">19. Google AdSense</h2>
+<pre>&lt;AdSlot placement="article_top|article_middle|article_bottom|sidebar|mobile_sticky|header" /&gt;</pre>
+<p>Config from ad_slots DB table. Lazy load. Clear content/ad separation. Admin enable/disable per slot.</p>
+
+<hr>
+
+<h2 id="s20">20. AdSense Analytics</h2>
+<p>Separate from site analytics. Phase 2: OAuth (adsense.readonly) → nightly job → ESTIMATED_EARNINGS, IMPRESSIONS, CLICKS, RPM. Never fake stats.</p>
+
+<hr>
+
+<h2 id="s21">21. Site Analytics</h2>
+<pre>
+sendBeacon → POST /api/events (202) → pg-boss queue → batch insert → daily rollups → dashboard
+</pre>
+<p>Fields: session_id, article_id, path, referrer, device, country, timestamp. Dashboard reads rollups only.</p>
+
+<hr>
+
+<h2 id="s22">22. Trending System</h2>
+<pre>
+score = (views_2h * 3 + views_24h) / POWER(hours_since_publish + 2, 1.5)
+Recomputed every 5 min. Configurable weights in site_settings.
+</pre>
+
+<hr>
+
+<h2 id="s23">23. Recommendation System</h2>
+<p>See Section 12. Each type = separate service method. Must NOT return same articles.</p>
+
+<hr>
+
+<h2 id="s24">24. Admin Dashboard</h2>
+<p>Widgets: article counts, views, visitors, trending, top articles/categories, recent articles, AdSense revenue, traffic chart.</p>
+
+<hr>
+
+<h2 id="s25">25. Roles</h2>
+<table>
+  <tr><th>Role</th><th>Permissions</th></tr>
+  <tr><td>SUPER_ADMIN</td><td>Everything</td></tr>
+  <tr><td>EDITOR</td><td>All content, publish any article</td></tr>
+  <tr><td>AUTHOR</td><td>Own articles, drafts, submit for review</td></tr>
+  <tr><td>ANALYST</td><td>Analytics + AdSense read-only</td></tr>
+</table>
+<p>Server-side enforcement via Better Auth userHasPermission().</p>
+
+<hr>
+
+<h2 id="s26">26. Security</h2>
+<p>httpOnly sessions, CSRF, XSS prevention (TipTap renderer), SQL injection (Drizzle), rate limiting, upload validation, security headers, audit logging, secrets in .env only.</p>
+
+<hr>
+
+<h2 id="s27">27. Database Schema</h2>
+<pre>
+users, sessions, accounts, verifications    -- Better Auth
+roles, user_roles                            -- RBAC
+authors, categories, tags, article_tags
+articles (id, slug, title, subtitle, excerpt, body JSONB, body_text, search_vector,
+          status, author_id, category_id, featured_media_id, seo_*, published_at, ...)
+article_revisions, article_relations, article_media
+media, redirects, pages, ad_slots, site_settings, homepage_sections
+analytics_events, analytics_daily_rollups, article_stats, audit_logs
+</pre>
+<p>Indexes: slug UNIQUE, (status, published_at DESC), GIN(search_vector), redirects(from_path UNIQUE), trending_score DESC.</p>
+
+<hr>
+
+<h2 id="s28">28. Scalability</h2>
+<table>
+  <tr><th>Scale</th><th>Architecture</th></tr>
+  <tr><td>100 articles, 100/day</td><td>Single VPS, Cloudflare free</td></tr>
+  <tr><td>10k articles, 100k/day</td><td>Tuned ISR, analytics partitioned</td></tr>
+  <tr><td>100k articles, 1M/month</td><td>Larger VPS, optional read replica, Meilisearch</td></tr>
+  <tr><td>10M/month</td><td>Load balancer, 2-3 app servers, Redis, replicas</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s29">29. Caching</h2>
+<pre>
+Browser → Cloudflare CDN → Next.js ISR (tag invalidation) → PostgreSQL
+Cache: articles, categories, homepage, trending, media
+Don't cache: search, admin, /recommended (personalized)
+Publish → revalidateTag(article, category, homepage, sitemap, trending)
+</pre>
+
+<hr>
+
+<h2 id="s30">30. URL Redirects</h2>
+<p>Slug change → INSERT redirects (301). Middleware checks before 404. Prevent chains (A→C not A→B→C).</p>
+
+<hr>
+
+<h2 id="s31">31. Content Versioning</h2>
+<p>article_revisions: full JSONB snapshot per save. Version, editor, timestamp, summary. One-click restore creates new revision.</p>
+
+<hr>
+
+<h2 id="s32">32. Scheduled Publishing</h2>
+<p>Status: draft → review → scheduled → published → archived. pg-boss cron every 60s checks scheduled_at ≤ NOW().</p>
+
+<hr>
+
+<h2 id="s33">33. Monetization</h2>
+<p>v1: AdSense via AdSlot. Future: direct ads, affiliate, sponsored, newsletter, premium. ad_slots.type enum ready.</p>
+
+<hr>
+
+<h2 id="s34">34. Performance</h2>
+<p>Targets: LCP &lt;2.5s, INP &lt;200ms, CLS &lt;0.1. ISR, CDN, WebP/AVIF, lazy ads, font subsetting, pagination, DB indexes.</p>
+
+<hr>
+
+<h2 id="s35">35. Mobile-First</h2>
+<p>16px+ text, 65-75 char lines, 44px tap targets, responsive srcset, mobile nav, non-intrusive mobile ads.</p>
+
+<hr>
+
+<h2 id="s36">36. Accessibility</h2>
+<p>Semantic HTML, single H1, alt text required, keyboard nav, focus states, ARIA labels, WCAG AA contrast.</p>
+
+<hr>
+
+<h2 id="s37">37. Legal Pages</h2>
+<p>CMS-managed: /about, /contact, /privacy, /terms, /disclaimer. Privacy must mention ys_read cookie + AdSense.</p>
+
+<hr>
+
+<h2 id="s38">38. Site Configuration</h2>
+<p>site_settings: site_name, description, logo, favicon, default SEO, OG image, social profiles, GA ID, AdSense ID, contact info, timezone, trending weights.</p>
+
+<hr>
+
+<h2 id="s39">39. AI Roadmap</h2>
+<table>
+  <tr><th>Phase</th><th>Scope</th></tr>
+  <tr><td>1</td><td>Manual CMS (v1 build)</td></tr>
+  <tr><td>2</td><td>AI assist: SEO/tags suggestions</td></tr>
+  <tr><td>3</td><td>AI drafts with human review gate</td></tr>
+  <tr><td>4</td><td>Embedding recommendations</td></tr>
+  <tr><td>5</td><td>Semi-automated pipeline with approval</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s40">40. Tech Stack</h2>
+<table>
+  <tr><th>Component</th><th>Technology</th></tr>
+  <tr><td>Runtime</td><td>Node.js 22 LTS</td></tr>
+  <tr><td>Framework</td><td>Next.js 15+ (standalone output)</td></tr>
+  <tr><td>Language</td><td>TypeScript</td></tr>
+  <tr><td>Database</td><td>PostgreSQL 16</td></tr>
+  <tr><td>ORM</td><td>Drizzle</td></tr>
+  <tr><td>Auth</td><td>Better Auth + RBAC</td></tr>
+  <tr><td>Editor</td><td>TipTap</td></tr>
+  <tr><td>Storage</td><td>Cloudflare R2</td></tr>
+  <tr><td>CDN</td><td>Cloudflare</td></tr>
+  <tr><td>Jobs</td><td>pg-boss</td></tr>
+  <tr><td>UI</td><td>Tailwind 4 + shadcn/ui</td></tr>
+  <tr><td>Images</td><td>Sharp</td></tr>
+  <tr><td>Tests</td><td>Playwright + Vitest</td></tr>
+  <tr><td>Deploy</td><td>Docker Compose on Hetzner VPS</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s41">41. Cost Estimates (Self-Hosted)</h2>
+<table>
+  <tr><th>Pageviews/Month</th><th>Cost</th><th>Breakdown</th></tr>
+  <tr><td>10,000</td><td>$8–15</td><td>Hetzner CX22, R2 free, CF free</td></tr>
+  <tr><td>100,000</td><td>$15–35</td><td>CPX31, R2 ~$1, backups</td></tr>
+  <tr><td>1,000,000</td><td>$50–120</td><td>Larger VPS, R2 $5-15</td></tr>
+  <tr><td>10,000,000</td><td>$200–500</td><td>Multi-node, Redis, Meilisearch</td></tr>
+</table>
+
+<hr>
+
+<h2 id="s42">42. Deployment</h2>
+<pre>
+Domain → Cloudflare CDN/WAF → Nginx → Next.js Docker → PostgreSQL
+                                              ↓
+                                        Cloudflare R2 (media)
+                                              ↓
+                                        Daily pg_dump → R2 backup
+</pre>
+<p>Docker services: app, postgres, nginx. Rollback via previous Docker tag.</p>
+
+<hr>
+
+<h2 id="s43">43. Backups</h2>
+<p>Daily pg_dump → R2 (30 daily + 4 weekly + 3 monthly). Monthly restore test. R2 versioning for media.</p>
+
+<hr>
+
+<h2 id="s44">44. Testing</h2>
+<p>Article CRUD, slug/redirects, categories/tags, auth/RBAC, SEO tags in HTML, sitemap, search, analytics, recommendations, scheduled publish, revisions, media upload.</p>
+
+<hr>
+
+<h2 id="s45">45. SEO Audit Checklist</h2>
+<p>Article text in HTML source, one H1, canonical, title/description, OG, JSON-LD, breadcrumbs, sitemap, robots.txt, internal links, alt text, mobile, CWV, no duplicates, max-image-preview:large, 1200px+ images.</p>
+
+<hr>
+
+<h2 id="s46">46. Security Audit Checklist</h2>
+<p>Auth/sessions, server-side RBAC, rate limits, upload validation, XSS/SQLi/CSRF, security headers, secrets not in git, admin noindex, audit log, HTTPS.</p>
+
+<hr>
+
+<h2 id="s47">47. Implementation Phases</h2>
+<div class="phase"><strong>Phase 1 (Week 1-2):</strong> Scaffold, Docker, DB schema, Better Auth, admin shell</div>
+<div class="phase"><strong>Phase 2 (Week 2-3):</strong> TipTap editor, article CRUD, revisions, R2 media</div>
+<div class="phase"><strong>Phase 3 (Week 3-4):</strong> Public pages, ISR, SEO, sitemap, homepage</div>
+<div class="phase"><strong>Phase 4 (Week 4-5):</strong> Search, trending/popular/latest, recommendations, read cookie</div>
+<div class="phase"><strong>Phase 5 (Week 5-6):</strong> AdSlot, analytics pipeline, dashboard, AdSense scaffold</div>
+<div class="phase"><strong>Phase 6 (Week 6-7):</strong> Scheduled publish, redirects, audits, E2E tests, production deploy</div>
+
+<hr>
+<p class="meta" style="text-align:center; margin-top:3rem;">
+  <strong>END OF ARCHITECTURE REPORT</strong><br>
+  Project: D:\masterWebsite | Next step: Begin Phase 1 implementation
+</p>
+
+</body>
+</html>
