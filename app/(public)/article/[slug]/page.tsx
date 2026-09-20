@@ -6,6 +6,7 @@ import { ArticleBody } from "@/components/public/article-body";
 import { ArticleGrid } from "@/components/public/article-grid";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { JsonLd } from "@/components/public/json-ld";
+import { PageViewTracker } from "@/components/public/page-view-tracker";
 import { getPublishedArticleBySlug } from "@/lib/queries/articles";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { articleJsonLd, breadcrumbJsonLd } from "@/lib/seo/json-ld";
@@ -50,6 +51,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
+      <PageViewTracker articleId={article.id} path={`/article/${article.slug}`} />
       <JsonLd
         data={articleJsonLd({
           title: article.title,

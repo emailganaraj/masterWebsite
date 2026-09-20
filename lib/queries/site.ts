@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { siteSettings } from "@/lib/db/schema";
 
@@ -7,6 +8,15 @@ export type PublicSiteSettings = {
   defaultSeoTitle: string;
   defaultSeoDescription: string;
 };
+
+export async function getSettingValue(key: string): Promise<unknown> {
+  const [row] = await db
+    .select()
+    .from(siteSettings)
+    .where(eq(siteSettings.key, key))
+    .limit(1);
+  return row?.value;
+}
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const rows = await db.select().from(siteSettings);

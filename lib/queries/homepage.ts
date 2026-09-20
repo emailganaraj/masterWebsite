@@ -1,7 +1,14 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { categories, homepageSections } from "@/lib/db/schema";
-import { listArticlesByCategory, listLatestArticles, type ArticleCardData } from "./articles";
+import {
+  listArticlesByCategory,
+  listLatestArticles,
+  listPopularArticles,
+  listRecommendedArticles,
+  listTrendingArticles,
+  type ArticleCardData,
+} from "./articles";
 
 export type HomepageSectionData = {
   id: string;
@@ -31,8 +38,14 @@ export async function getHomepageSections(): Promise<HomepageSectionData[]> {
         articles = await listLatestArticles(Math.min(limit, 1));
         break;
       case "trending":
+        articles = await listTrendingArticles(limit);
+        break;
       case "popular":
+        articles = await listPopularArticles(limit);
+        break;
       case "recommended":
+        articles = await listRecommendedArticles(limit);
+        break;
       case "editors_picks":
         articles = await listLatestArticles(limit);
         break;

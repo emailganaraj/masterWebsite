@@ -48,6 +48,18 @@ export function HomepageSections({ sections }: { sections: HomepageSectionData[]
                 <Link href="/latest" className="text-sm font-medium text-blue-600 hover:underline">
                   View all →
                 </Link>
+              ) : section.type === "trending" ? (
+                <Link href="/trending" className="text-sm font-medium text-blue-600 hover:underline">
+                  View all →
+                </Link>
+              ) : section.type === "popular" ? (
+                <Link href="/popular" className="text-sm font-medium text-blue-600 hover:underline">
+                  View all →
+                </Link>
+              ) : section.type === "recommended" ? (
+                <Link href="/recommended" className="text-sm font-medium text-blue-600 hover:underline">
+                  View all →
+                </Link>
               ) : null}
             </div>
             {section.type === "hero" ? (

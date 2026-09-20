@@ -2,7 +2,15 @@
 
 Production-ready, SEO-first publishing platform built with Next.js 15, PostgreSQL, Drizzle ORM, and Better Auth.
 
-## Phase 3 (Current) — Public Site
+## Phase 4 (Current) — Discovery
+
+- **Search** — PostgreSQL FTS via `search_vector` at `/search?q=`
+- **List pages** — `/trending`, `/popular`, `/latest`, `/recommended`
+- **View tracking** — `POST /api/events` → `analytics_events` + `article_stats`
+- **Trending scores** — recomputed from `trending_weights` in site_settings
+- **Read cookie** — `ys_read` for personalized recommendations
+
+## Phase 3 — Public Site
 
 - Public routes: `/article/{slug}`, `/category/{slug}`, `/tag/{slug}`, `/author/{slug}`
 - Homepage sections from DB (hero, latest, trending, etc.)

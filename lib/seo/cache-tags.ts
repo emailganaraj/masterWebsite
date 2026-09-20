@@ -1,6 +1,7 @@
 export const cacheTags = {
   homepage: "homepage",
   sitemap: "sitemap",
+  trending: "trending",
   article: (slug: string) => `article:${slug}`,
   category: (slug: string) => `category:${slug}`,
   tag: (slug: string) => `tag:${slug}`,

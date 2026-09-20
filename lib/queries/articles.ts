@@ -1,9 +1,10 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, notInArray, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import {
   articleRelations,
   articles,
+  articleStats,
   articleTags,
   authors,
   categories,
@@ -92,6 +93,66 @@ async function fetchPublishedArticles(limit = 12, categoryId?: string) {
 
 export async function listLatestArticles(limit = 12) {
   return fetchPublishedArticles(limit);
+}
+
+async function fetchRankedArticles(
+  orderBy: ReturnType<typeof desc>,
+  limit = 24,
+  excludeIds: string[] = [],
+) {
+  const conditions =
+    excludeIds.length > 0
+      ? and(publishedOnly, notInArray(articles.id, excludeIds))
+      : publishedOnly;
+
+  const rows = await db
+    .select({
+      id: articles.id,
+      slug: articles.slug,
+      title: articles.title,
+      excerpt: articles.excerpt,
+      publishedAt: articles.publishedAt,
+      featuredMediaId: articles.featuredMediaId,
+      categoryName: categories.name,
+      categorySlug: categories.slug,
+      authorName: authors.name,
+      authorSlug: authors.slug,
+    })
+    .from(articles)
+    .innerJoin(articleStats, eq(articleStats.articleId, articles.id))
+    .leftJoin(categories, eq(articles.categoryId, categories.id))
+    .leftJoin(authors, eq(articles.authorId, authors.id))
+    .where(conditions)
+    .orderBy(orderBy)
+    .limit(limit);
+
+  return mapArticleCards(rows);
+}
+
+export async function listTrendingArticles(limit = 24) {
+  const results = await fetchRankedArticles(desc(articleStats.trendingScore), limit);
+  if (results.length > 0) return results;
+  return listLatestArticles(limit);
+}
+
+export async function listPopularArticles(limit = 24) {
+  const results = await fetchRankedArticles(
+    desc(sql`(0.7 * ${articleStats.views7d} + 0.3 * ${articleStats.viewsTotal})`),
+    limit,
+  );
+  if (results.length > 0) return results;
+  return listLatestArticles(limit);
+}
+
+export async function listRecommendedArticles(limit = 24, excludeIds: string[] = []) {
+  const results = await fetchRankedArticles(
+    desc(articleStats.trendingScore),
+    limit,
+    excludeIds,
+  );
+  if (results.length > 0) return results;
+  const latest = await listLatestArticles(limit + excludeIds.length);
+  return latest.filter((a) => !excludeIds.includes(a.id)).slice(0, limit);
 }
 
 export async function listArticlesByCategory(categoryId: string, limit = 24) {

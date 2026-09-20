@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SearchForm } from "@/components/public/search-form";
 import { listCategoriesForNav } from "@/lib/queries/taxonomy";
 import { getPublicSiteSettings } from "@/lib/queries/site";
 
@@ -19,16 +20,20 @@ export default async function PublicLayout({
           <Link href="/" className="text-xl font-bold tracking-tight">
             {settings.siteName}
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            {navCategories.map((cat) => (
+          <nav className="hidden items-center gap-5 text-sm font-medium lg:flex">
+            {navCategories.slice(0, 4).map((cat) => (
               <Link key={cat.slug} href={`/category/${cat.slug}`} className="hover:text-blue-600">
                 {cat.name}
               </Link>
             ))}
-            <Link href="/latest" className="hover:text-blue-600">
-              Latest
-            </Link>
+            <Link href="/latest" className="hover:text-blue-600">Latest</Link>
+            <Link href="/trending" className="hover:text-blue-600">Trending</Link>
+            <Link href="/popular" className="hover:text-blue-600">Popular</Link>
+            <Link href="/recommended" className="hover:text-blue-600">For You</Link>
           </nav>
+          <div className="hidden md:block">
+            <SearchForm />
+          </div>
         </div>
       </header>
       <main>{children}</main>

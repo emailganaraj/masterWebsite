@@ -5,6 +5,7 @@ export function revalidatePublishedArticle(slug: string, categorySlug?: string |
   revalidateTag(cacheTags.article(slug));
   revalidateTag(cacheTags.homepage);
   revalidateTag(cacheTags.sitemap);
+  revalidateTag(cacheTags.trending);
   if (categorySlug) {
     revalidateTag(cacheTags.category(categorySlug));
   }
@@ -14,6 +15,7 @@ export function revalidateCategory(slug: string) {
   revalidateTag(cacheTags.category(slug));
   revalidateTag(cacheTags.homepage);
   revalidateTag(cacheTags.sitemap);
+  revalidateTag(cacheTags.trending);
 }
 
 export function revalidateTagPublic(slug: string) {

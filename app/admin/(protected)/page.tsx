@@ -70,15 +70,15 @@ export default async function AdminDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Phase 3 — Public Site</CardTitle>
+          <CardTitle>Phase 4 — Discovery</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-zinc-600">
-            <li>✅ Public article, category, tag, author pages</li>
-            <li>✅ Homepage driven by homepage_sections</li>
-            <li>✅ SEO metadata + JSON-LD + sitemap + robots.txt</li>
-            <li>✅ ISR with revalidateTag on publish</li>
-            <li>→ Phase 4: Search, trending, recommendations</li>
+            <li>✅ Full-text search (/search)</li>
+            <li>✅ Trending, popular, recommended list pages</li>
+            <li>✅ Page view tracking + article_stats</li>
+            <li>✅ ys_read cookie for personalized recommendations</li>
+            <li>→ Phase 5: Analytics dashboard + AdSense</li>
           </ul>
         </CardContent>
       </Card>
